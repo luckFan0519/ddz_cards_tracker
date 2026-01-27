@@ -1,0 +1,103 @@
+/* style.qss
+   UI 样式集中管理：方便维护、方便换主题
+   -------------------------------------------------
+   说明：
+   - 牌名 QLabel：objectName = "CardNameLabel"
+   - 数量 QLabel：objectName = "CardCountLabel"
+   - depleted 状态：dynamicProperty depleted=true/false
+     通过 QSS 属性选择器匹配：
+     QLabel#CardNameLabel[depleted="true"] { ... }
+*/
+
+/* -----------------------------
+   全局默认：让字体更统一一点
+   ----------------------------- */
+QWidget {
+    font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC";
+    font-size: 14px;
+}
+
+/* -----------------------------
+   牌名：默认样式（对应你原来 setStyleSheet 的那段）
+   ----------------------------- */
+QLabel#CardNameLabel {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+}
+
+/* depleted：牌名变灰（对应你原来 v<=0 的 setStyleSheet）
+   你原样式 color:#999; 这里完全照做 */
+QLabel#CardNameLabel[depleted="true"] {
+    font-size: 16px;
+    font-weight: 600;
+    color: #999;
+}
+
+/* -----------------------------
+   数量：默认样式（对应你原来 setStyleSheet 的那段）
+   ----------------------------- */
+QLabel#CardCountLabel {
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #f4f4f4;
+    color: #111;
+}
+
+/* depleted：数量变灰（对应你原来 v<=0 的 setStyleSheet） */
+QLabel#CardCountLabel[depleted="true"] {
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #f4f4f4;
+    color: #999;
+}
+
+/* 牌名：加边框 */
+QLabel#CardNameLabel {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+
+    /* 新增：边框 */
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    padding: 2px 6px;
+    background: transparent;  /* 牌名不需要底色就透明 */
+}
+
+/* 牌名 depleted：边框不变，只变色 */
+QLabel#CardNameLabel[depleted="true"] {
+    font-size: 16px;
+    font-weight: 600;
+    color: #999;
+
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    padding: 2px 6px;
+    background: transparent;
+}
+
+/* 数量：原本就有背景，这里加边框 */
+QLabel#CardCountLabel {
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #f4f4f4;
+    color: #111;
+
+    /* 新增：边框 */
+    border: 1px solid #d0d0d0;
+}
+
+/* 数量 depleted：边框不变，只变色 */
+QLabel#CardCountLabel[depleted="true"] {
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #f4f4f4;
+    color: #999;
+
+    border: 1px solid #d0d0d0;
+}
