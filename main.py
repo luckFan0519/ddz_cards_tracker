@@ -1,12 +1,14 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from ui.card_ui import CardUI, load_qss  # 确保 card_ui.py 里有 load_qss
-
+from ui.main_window import CardUI
+from ui.styles import load_qss
+from config.settings import BASE_DIR
 
 def main():
     app = QApplication(sys.argv)
-
-    # load_qss(app, "ui.qss") # 先注释, 默认的更好看, 以后美化
+    dir_path = BASE_DIR + "\\ui\\ui.qss"
+    # print(dir_path)
+    load_qss(app, dir_path) # 先注释, 默认的更好看, 以后美化
 
     w = CardUI()
     w.show()

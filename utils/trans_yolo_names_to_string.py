@@ -17,5 +17,5 @@ def trans_yolo_names_to_string(lst : list):
     string = ""
     for item in lst:
         string = string + tool_trans(item)
-        string += "  "
+        string += "     "
     return  string

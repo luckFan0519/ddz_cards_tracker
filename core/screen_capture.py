@@ -54,12 +54,12 @@ class ScreenCapture:
 
         return img
 
-
-
-
-
-if __name__ == "__main__":
-    screen = ScreenCapture("JJ斗地主")
-    img = screen.capture_window()
-    img.show()
-    img.save("screenshot.png")
+#
+#
+#
+#
+# if __name__ == "__main__":
+#     screen = ScreenCapture("JJ斗地主")
+#     img = screen.capture_window()
+#     img.show()
+#     img.save("screenshot.png")

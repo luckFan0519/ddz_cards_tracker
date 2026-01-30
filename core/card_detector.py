@@ -7,22 +7,48 @@ from config.settings import YOLO_TO_CARD_MAPPING
 
 class CardDetector:
 
-    def __init__(self,  window_title):
+    def __init__(self,  layout_name):
         self.yolo_iou = settings.YOLO_IOU_THRESHOLD
         self.yolo_conf = settings.YOLO_CONFIDENCE_THRESHOLD
         self.weight_path = settings.YOLO_MODEL_PATH
-        self.window_title = window_title
+        
+        # 如果没有提供布局名称或配置不存在，使用字典中第一个配置
+        if layout_name is None or layout_name not in settings.WINDOW_LAYOUTS:
+            available_layouts = list(settings.WINDOW_LAYOUTS.keys())
+            if available_layouts:
+                layout_name = available_layouts[0]
+                print(f"使用默认配置: {layout_name}")
+            else:
+                raise ValueError("WINDOW_LAYOUTS 字典为空，没有可用的配置")
+        
+        self.layout_name = layout_name
+        self.layout_config = settings.WINDOW_LAYOUTS[layout_name]
+        self.window_title = self.layout_config["window_title"]
         self.screen_capture = ScreenCapture(self.window_title)
         self.model, self.device = self.__load_model() # 自动加载模型
 
     # ================= 选择设备 =================
     def __load_model(self):
         model = YOLO(self.weight_path)
-        if torch.cuda.is_available():
-            model.to("cuda")
-            return model, "cuda"
-        else :
+        
+        # 根据用户设置选择设备
+        device_choice = settings.DEVICE_CHOICE
+        print(f"[CardDetector] 当前设备选择: {device_choice}")
+        
+        if device_choice == "cuda":
+            # 使用GPU
+            if torch.cuda.is_available():
+                model.to("cuda")
+                print("[CardDetector] 使用GPU (CUDA)")
+                return model, "cuda"
+            else:
+                print("[CardDetector] 警告: 用户选择了GPU，但CUDA不可用，使用CPU")
+                model.to("cpu")
+                return model, "cpu"
+        else:
+            # 使用CPU
             model.to("cpu")
+            print("[CardDetector] 使用CPU")
             return model, "cpu"
 
 
@@ -131,7 +157,7 @@ class CardDetector:
         """
 
         # 取得布局
-        layout = settings.LAYOUT_PRESETS[self.window_title]
+        layout = self.layout_config["layout"]
         # print(layout)
 
         img_h, img_w = r.orig_shape[:2]

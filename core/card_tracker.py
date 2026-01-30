@@ -1,17 +1,18 @@
 import os
 import traceback
 from core.card_detector import CardDetector
-from config.settings import WAIT_BEGIN, HAS_STARTED, FRAME_LENGTH, STARTED_RECORD_CARD, TOTAL_CARDS
+from config.settings import WAIT_BEGIN, HAS_STARTED, STARTED_RECORD_CARD, TOTAL_CARDS
 from PySide6.QtCore import QObject, Signal, Slot
 from config.settings import DEBUG_MODE
 import time
-from config.settings import RESET_TIME
+import config.settings as settings
 
 
 class CardTracker:
-    def __init__(self, window_title = "JJ斗地主"):
-        self.window_title = window_title
-        self.card_detector = CardDetector(window_title=self.window_title)
+    def __init__(self, layout_name = None):
+        # 如果没有提供布局名称，CardDetector 会自动使用第一个可用配置
+        self.layout_name = layout_name
+        self.card_detector = CardDetector(layout_name=layout_name)
         self.state = WAIT_BEGIN
         self.player_hand = []
         self.player_played = []
@@ -45,13 +46,15 @@ class CardTracker:
         self.no_target_time = time.time()
 
         if DEBUG_MODE:
+            print("------------------------------------------")
             print("player_hand: ", player_hand)
             print("opponent_left: ", opponent_left)
             print("opponent_right: ", opponent_right)
             print("landlord_cards: ", landlord_cards)
 
 
-        if len(self.player_hand) >= FRAME_LENGTH:
+
+        if len(self.player_hand) >= settings.FRAME_LENGTH:
             self.player_hand = self.player_hand[1:]
             self.player_played = self.player_played[1:]
             self.opponent_left = self.opponent_left[1:]
@@ -66,7 +69,7 @@ class CardTracker:
 
     def __check_card(self, lst): # 检测连续的帧内容是否一样
 
-        if len(lst) < FRAME_LENGTH or len(lst[-1]) == 0:
+        if len(lst) < settings.FRAME_LENGTH or len(lst[-1]) == 0:
             return False
 
         for i in range(1, len(lst)):
@@ -116,7 +119,7 @@ class CardTracker:
     def run(self):
         self.run_game()
         tme = time.time()
-        if tme - self.no_target_time > RESET_TIME:
+        if tme - self.no_target_time > settings.RESET_TIME:
             self.reset()
             self.no_target_time = tme
         return self.remain_cards, self.show_left_cards, self.show_right_cards, self.show_self_cards
