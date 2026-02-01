@@ -1,10 +1,14 @@
 # Han 记牌器
-
+基于YOLO深度学习的智能斗地主记牌器，**自动识别游戏中的扑克牌并实时追踪剩余牌数量。**
+该程序当前阶段还缺少许多功能，**希望有人能加入一起完善！**
 ## 主界面
 ![](https://github.com/luckFan0519/ddz_cards_tracker/blob/main/images/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202026-02-01%20220839.png?raw=true)
+![](https://github.com/luckFan0519/ddz_cards_tracker/blob/main/images/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202026-02-01%20220932.png?raw=true)
 
-基于YOLO深度学习的智能斗地主记牌器，自动识别游戏中的扑克牌并实时追踪剩余牌数量。
-该程序当前阶段还缺少许多功能，**希望有人能加入一起完善！**
+![](https://github.com/luckFan0519/ddz_cards_tracker/blob/main/images/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202026-02-01%20220911.png?raw=true)
+
+
+
 ## 功能特点
 
 - 🎴 **自动识别** - 使用YOLO模型自动识别屏幕上的扑克牌
@@ -115,9 +119,10 @@ python main.py
 
 **注意：** `little_joker_shown` 和 `big_joker_shown` 仅影响**出牌记录区域**的显示，不影响主界面牌名显示。
 
-### 自定义窗口布局
-
+### **自定义窗口布局 (重要)**
 如需适配其他斗地主软件，在 `config.yaml` 中添加新的布局配置：
+<br>
+可使用 'utils/add_layout' 下的脚本脚本绘制布局图，辅助配置。
 
 ```yaml
 window_layouts:
@@ -132,7 +137,16 @@ window_layouts:
 ```
 
 区域坐标为归一化坐标（0.0-1.0），表示相对于窗口的位置。
-
+<br>
+**注意 ：**<br>
+窗口截图时，确保游戏窗口完全可见，不被遮挡。
+<br>
+窗口截图时,尽量使用screen_capture.py中的截图函数.
+<br>
+同一软件不同模式下的扑克牌布局可能不同，需要根据实际情况调整布局配置。
+<br>
+最终布局图实例如下：
+![](https://github.com/luckFan0519/ddz_cards_tracker/blob/main/images/layout_debug.png?raw=true)
 ## 项目结构
 
 ```
