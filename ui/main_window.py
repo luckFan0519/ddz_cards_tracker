@@ -35,7 +35,7 @@ class CardUI(QMainWindow):
         # -------------------------
         # 窗口基础设置（保持你原设置）
         # -------------------------
-        self.setWindowTitle("斗地主记牌器")
+        self.setWindowTitle("Han记牌器")
         self.setMinimumWidth(550) # 最小宽度
         self.setMinimumHeight(100) # 允许窗口缩小到最小高度
         self.resize(550, 100) # 设置初始窗口大小
