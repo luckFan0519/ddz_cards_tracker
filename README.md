@@ -1,8 +1,10 @@
 # Han 记牌器
 
+## 主界面
+![](https://github.com/luckFan0519/ddz_cards_tracker/blob/main/images/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202026-02-01%20220839.png?raw=true)
 
 基于YOLO深度学习的智能斗地主记牌器，自动识别游戏中的扑克牌并实时追踪剩余牌数量。
-
+该程序当前阶段还缺少许多功能，**希望有人能加入一起完善！**
 ## 功能特点
 
 - 🎴 **自动识别** - 使用YOLO模型自动识别屏幕上的扑克牌
@@ -108,6 +110,10 @@ python main.py
 | `yolo_iou_threshold` | YOLO IOU阈值 | 0.45 |
 | `always_on_top` | 窗口置顶 | true |
 | `show_played_cards` | 显示出牌记录 | true |
+| `little_joker_shown` | 小王显示字符（出牌记录） | 🃟 |
+| `big_joker_shown` | 大王显示字符（出牌记录） | 🃏 |
+
+**注意：** `little_joker_shown` 和 `big_joker_shown` 仅影响**出牌记录区域**的显示，不影响主界面牌名显示。
 
 ### 自定义窗口布局
 
@@ -168,12 +174,6 @@ ddz_cards_tracker_8/
 5. **连续帧验证** - 连续N帧相同才确认出牌，避免误识别
 6. **更新UI** - 实时更新剩余牌数量和出牌记录
 
-## 支持的扑克牌
-
-- 3-10、J、Q、K、A、2（各4张）
-- 小王 🃟（1张）
-- 大王 🃏（1张）
-
 ## 常见问题
 
 ### Q: 识别不准确怎么办？
@@ -190,8 +190,7 @@ A: 可以尝试以下方法：
 A: 可以尝试：
 1. 增加检测间隔时间
 2. 使用GPU加速（如果有NVIDIA显卡）
-3. 减小窗口大小或降低游戏分辨率
-4. 使用更小的模型（如yolov11n）
+3. 使用更小的模型（如yolov11n）
 
 ### Q: 如何适配其他斗地主软件？
 
@@ -221,12 +220,6 @@ A: 将 `other_YOLO_weights/` 目录中的模型文件复制到 `yolo/weights/bes
 ## 免责声明
 
 本工具仅供学习和娱乐使用，请勿用于任何商业用途或违反游戏服务条款的行为。使用本工具所产生的一切后果由使用者自行承担。
-
-## 致谢
-
-- [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) - 强大的目标检测框架
-- [PySide6](https://www.qt.io/qt-for-python) - Python Qt绑定
-- [PyTorch](https://pytorch.org/) - 深度学习框架
 
 ## 联系方式
 
