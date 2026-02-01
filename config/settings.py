@@ -106,6 +106,16 @@ WINDOW_LAYOUTS = config.get('window_layouts', {
     }
 })
 
+# 当前选择的布局名称，优先从配置文件读取，如不存在则取WINDOW_LAYOUTS的第一个key
+try:
+    _available = list(WINDOW_LAYOUTS.keys())
+    if _available:
+        CURRENT_LAYOUT = config.get('current_layout', _available[0])
+    else:
+        CURRENT_LAYOUT = None
+except Exception:
+    CURRENT_LAYOUT = None
+
 # 连续多少帧检测相同内容算作正确截取
 FRAME_LENGTH = config.get('frame_length', 3)
 
@@ -129,14 +139,23 @@ def save_device_choice(device_choice):
     device_choice: "cpu" 或 "cuda"
     """
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        config['device_choice'] = device_choice
-        
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, allow_unicode=True, default_flow_style=False)
-        
+        cfg = {}
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    cfg = loaded
+        except Exception:
+            cfg = {}
+
+        cfg['device_choice'] = device_choice
+
+        # 原子写入：先写临时文件再替换
+        tmp_path = CONFIG_PATH + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
+        os.replace(tmp_path, CONFIG_PATH)
+
         print(f"设备选择已保存到文件: {device_choice}")
         print(f"请重启程序以应用更改")
     except Exception as e:
@@ -148,14 +167,21 @@ def save_reset_time(reset_time):
     reset_time: 重置时间（秒）
     """
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        config['reset_time'] = reset_time
-        
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, allow_unicode=True, default_flow_style=False)
-        
+        cfg = {}
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    cfg = loaded
+        except Exception:
+            cfg = {}
+
+        cfg['reset_time'] = reset_time
+        tmp_path = CONFIG_PATH + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
+        os.replace(tmp_path, CONFIG_PATH)
+
         print(f"重置时间已保存到文件: {reset_time}秒")
     except Exception as e:
         print(f"保存重置时间失败: {e}")
@@ -166,14 +192,21 @@ def save_frame_length(frame_length):
     frame_length: 帧长度
     """
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        config['frame_length'] = frame_length
-        
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, allow_unicode=True, default_flow_style=False)
-        
+        cfg = {}
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    cfg = loaded
+        except Exception:
+            cfg = {}
+
+        cfg['frame_length'] = frame_length
+        tmp_path = CONFIG_PATH + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
+        os.replace(tmp_path, CONFIG_PATH)
+
         print(f"帧长度已保存到文件: {frame_length}")
     except Exception as e:
         print(f"保存帧长度失败: {e}")
@@ -184,14 +217,21 @@ def save_detect_interval(detect_interval):
     detect_interval: 检测间隔（秒）
     """
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        config['detect_interval_sec'] = detect_interval
-        
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, allow_unicode=True, default_flow_style=False)
-        
+        cfg = {}
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    cfg = loaded
+        except Exception:
+            cfg = {}
+
+        cfg['detect_interval_sec'] = detect_interval
+        tmp_path = CONFIG_PATH + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
+        os.replace(tmp_path, CONFIG_PATH)
+
         print(f"检测间隔已保存到文件: {detect_interval}秒")
     except Exception as e:
         print(f"保存检测间隔失败: {e}")
@@ -202,14 +242,21 @@ def save_always_on_top(always_on_top):
     always_on_top: 是否显示在最上层（True/False）
     """
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        config['always_on_top'] = always_on_top
-        
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, allow_unicode=True, default_flow_style=False)
-        
+        cfg = {}
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    cfg = loaded
+        except Exception:
+            cfg = {}
+
+        cfg['always_on_top'] = always_on_top
+        tmp_path = CONFIG_PATH + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
+        os.replace(tmp_path, CONFIG_PATH)
+
         print(f"是否显示在最上层已保存到文件: {always_on_top}")
     except Exception as e:
         print(f"保存是否显示在最上层失败: {e}")
@@ -220,14 +267,21 @@ def save_show_played_cards(show_played_cards):
     show_played_cards: 是否显示玩家所出的牌（True/False）
     """
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        config['show_played_cards'] = show_played_cards
-        
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, allow_unicode=True, default_flow_style=False)
-        
+        cfg = {}
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    cfg = loaded
+        except Exception:
+            cfg = {}
+
+        cfg['show_played_cards'] = show_played_cards
+        tmp_path = CONFIG_PATH + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
+        os.replace(tmp_path, CONFIG_PATH)
+
         print(f"是否显示玩家所出的牌已保存到文件: {show_played_cards}")
     except Exception as e:
         print(f"保存是否显示玩家所出的牌失败: {e}")
@@ -238,17 +292,50 @@ def save_debug_mode(debug_mode):
     debug_mode: 是否开启调试模式（True/False）
     """
     try:
-        with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        
-        config['debug_mode'] = debug_mode
-        
-        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, allow_unicode=True, default_flow_style=False)
-        
+        cfg = {}
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    cfg = loaded
+        except Exception:
+            cfg = {}
+
+        cfg['debug_mode'] = debug_mode
+        tmp_path = CONFIG_PATH + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
+        os.replace(tmp_path, CONFIG_PATH)
+
         print(f"调试模式已保存到文件: {debug_mode}")
     except Exception as e:
         print(f"保存调试模式失败: {e}")
+
+def save_current_layout(layout_name):
+    """
+    保存当前布局名称到config.yaml
+    layout_name: str
+    """
+    try:
+        cfg = {}
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    cfg = loaded
+        except Exception:
+            cfg = {}
+
+        cfg['current_layout'] = layout_name
+        tmp_path = CONFIG_PATH + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False)
+        os.replace(tmp_path, CONFIG_PATH)
+
+        print(f"当前布局已保存到文件: {layout_name}")
+    except Exception as e:
+        print(f"保存当前布局失败: {e}")
+
 
 # ==================== 路径配置 ====================
 # 注意：BASE_DIR 和 YOLO_MODEL_PATH 已在文件开头定义
@@ -279,6 +366,4 @@ TOTAL_CARDS = {
     'jok' : 1,
     'JOK' : 1
 }
-
-
 

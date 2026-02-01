@@ -42,7 +42,12 @@ class CardUI(QMainWindow):
 
         # 应用是否显示在最上层设置
         from config.settings import ALWAYS_ON_TOP
-        self.setWindowFlag(Qt.WindowStaysOnTopHint, ALWAYS_ON_TOP)
+        # 使用 setWindowFlag 以避免重建窗口导致子控件丢失
+        try:
+            self.setWindowFlag(Qt.WindowStaysOnTopHint, ALWAYS_ON_TOP)
+        except Exception:
+            # 兜底：无论如何不要使窗口重建后丢失 central widget
+            pass
 
         # 应用是否显示玩家所出的牌设置
         from config.settings import SHOW_PLAYED_CARDS
@@ -56,12 +61,19 @@ class CardUI(QMainWindow):
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
         # 自动选择字典中第一个可用的配置
-        from config.settings import WINDOW_LAYOUTS
+        from config.settings import WINDOW_LAYOUTS, CURRENT_LAYOUT
         available_layouts = list(WINDOW_LAYOUTS.keys())
-        if available_layouts:
-            self.layout_name = available_layouts[0]
-        else:
+        if not available_layouts:
             raise ValueError("WINDOW_LAYOUTS 字典为空，没有可用的配置")
+
+        # 优先使用配置文件中保存的 CURRENT_LAYOUT，如果不存在则使用第一个
+        if CURRENT_LAYOUT and CURRENT_LAYOUT in available_layouts:
+            self.layout_name = CURRENT_LAYOUT
+        else:
+            self.layout_name = available_layouts[0]
+            # 如果配置中没有CURRENT_LAYOUT，可以将默认值写回内存（无需立刻写文件）
+            settings.CURRENT_LAYOUT = self.layout_name
+
         self.detect_interval_sec = settings.DETECT_INTERVAL_SEC
         self.played_cards = {
             "left": "",
@@ -227,6 +239,7 @@ class CardUI(QMainWindow):
         """
         点击设置按钮时打开设置对话框
         """
+        # 注意：不要把 on_always_on_top_change_callback 传给 dialog（避免在对话框打开时立即变更窗口 flags 导致显示问题）
         dialog = SettingsDialog(
             self,
             on_reset_callback=self.on_reset_clicked,
@@ -235,7 +248,7 @@ class CardUI(QMainWindow):
             on_device_change_callback=self.on_device_changed,
             on_reset_time_change_callback=self.on_reset_time_changed,
             on_frame_length_change_callback=self.on_frame_length_changed,
-            on_always_on_top_change_callback=self.on_always_on_top_changed,
+            on_always_on_top_change_callback=None,
             on_show_played_cards_change_callback=self.on_show_played_cards_changed,
             on_debug_mode_change_callback=self.on_debug_mode_changed
         )
@@ -269,6 +282,14 @@ class CardUI(QMainWindow):
         dialog.set_current_debug_mode(DEBUG_MODE)
 
         dialog.exec()
+        # 对于 "显示在最上层" 我们在对话框关闭后统一应用，避免在 modal dialog 打开时改变 window flags
+        try:
+            always_index = dialog.combo_always_on_top.currentIndex()
+            # 如果用户选择了不同值，则调用处理函数
+            if always_index is not None:
+                self.on_always_on_top_changed(always_index)
+        except Exception:
+            pass
 
     def on_pause_clicked(self):
         """
@@ -384,6 +405,78 @@ class CardUI(QMainWindow):
             self.count_labels[card].style().unpolish(self.count_labels[card])
             self.count_labels[card].style().polish(self.count_labels[card])
 
+    def _ensure_widgets_attached(self):
+        """
+        Ensure all main widgets (name_labels, count_labels, played cards labels)
+        are attached to their layouts/parents. This repairs UI if a native
+        window flag change detached them.
+        """
+        # Ensure grid labels are present in the grid layout
+        for col, card in enumerate(self.card_order):
+            name = self.name_labels.get(card)
+            cnt = self.count_labels.get(card)
+            try:
+                if name is not None and name.parent() is None:
+                    self.grid.addWidget(name, 0, col)
+                if cnt is not None and cnt.parent() is None:
+                    self.grid.addWidget(cnt, 1, col)
+            except Exception:
+                pass
+
+        # 如果 grid 中项数量不完整，重建 grid 布局（防止在 setWindowFlags 后 native layout 丢失）
+        try:
+            expected = len(self.card_order) * 2  # name + count per card
+            actual = self.grid.count()
+            if actual < expected:
+                # 清理 grid 中残留项
+                while self.grid.count() > 0:
+                    item = self.grid.takeAt(0)
+                    if item is None:
+                        break
+                # 重新添加所有 card widgets
+                for col, card in enumerate(self.card_order):
+                    name = self.name_labels.get(card)
+                    cnt = self.count_labels.get(card)
+                    try:
+                        if name is not None:
+                            self.grid.addWidget(name, 0, col)
+                        if cnt is not None:
+                            self.grid.addWidget(cnt, 1, col)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+        # Ensure played cards labels are present in second_row_layout when visible
+        if self._show_played_cards:
+            for lbl in self.played_cards_labels:
+                try:
+                    if lbl.parent() is None:
+                        self.second_row_layout.addWidget(lbl)
+                        lbl.setVisible(True)
+                except Exception:
+                    pass
+        else:
+            for lbl in self.played_cards_labels:
+                try:
+                    lbl.setVisible(False)
+                except Exception:
+                    pass
+        # Force a geometry and repaint pass
+        try:
+            self.central_widget.updateGeometry()
+            self.central_widget.update()
+            self.central_widget.repaint()
+            self.adjustSize()
+        except Exception:
+            pass
+        # Debug: log how many children and layout items exist
+        try:
+            if settings.DEBUG_MODE:
+                print(f"[DEBUG] central_widget children: {len(self.central_widget.children())}, grid count: {self.grid.count()}, root_layout count: {self.root_layout.count()}")
+        except Exception:
+            pass
+
     @Slot()
     def on_reset_clicked(self):
         """
@@ -437,6 +530,11 @@ class CardUI(QMainWindow):
 
         # 更新当前布局名称
         self.layout_name = selected_layout
+
+        # 持久化：保存到 config.yaml 并更新内存中的 CURRENT_LAYOUT
+        from config.settings import save_current_layout
+        save_current_layout(selected_layout)
+        settings.CURRENT_LAYOUT = selected_layout
 
         # 停止定时器（如果存在）
         if hasattr(self, 'timer'):
@@ -547,11 +645,35 @@ class CardUI(QMainWindow):
         import config.settings as settings
         settings.ALWAYS_ON_TOP = always_on_top
 
-        # 应用窗口标志（使用setWindowFlag方法，不会影响其他标志）
-        # 注意：setWindowFlag可能会导致窗口隐藏，需要重新显示
-        self.setWindowFlag(Qt.WindowStaysOnTopHint, always_on_top)
-        self.show()
+        # 简化：直接切换 flag，然后确保 widgets 已连接并刷新界面
+        try:
+            self.setWindowFlag(Qt.WindowStaysOnTopHint, always_on_top)
+        except Exception:
+            try:
+                # 兜底
+                self.setWindowFlags(self.windowFlags())
+            except Exception:
+                pass
 
+        # 确保控件仍然附着在布局上（并打印调试信息）
+        self._ensure_widgets_attached()
+
+        # 重新显示并提升
+        try:
+            self.show()
+            self.raise_()
+        except Exception:
+            pass
+
+        # 强制重绘
+        try:
+            self.central_widget.update()
+            self.central_widget.repaint()
+            self.update()
+            self.repaint()
+            self.adjustSize()
+        except Exception:
+            pass
         print(f"[UI] 是否显示在最上层已更新为: {'是' if always_on_top else '否'}")
 
     def on_show_played_cards_changed(self, index):
@@ -612,17 +734,14 @@ class CardUI(QMainWindow):
                 lbl.setMaximumHeight(16777215)
                 lbl.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         else:
-            # 从second_row_layout中移除所有标签
+            # 隐藏并从布局移除标签（不要 setParent(None)，否则控件会脱离父窗口并可能无法恢复）
             for lbl in self.played_cards_labels:
-                if lbl.parent() is not None:
+                try:
                     self.second_row_layout.removeWidget(lbl)
-                    lbl.setVisible(False)
-                    lbl.setParent(None)
-
-            # 从root_layout中移除second_row_layout
-            if self.second_row_layout.parent() is not None:
-                self.root_layout.removeItem(self.second_row_layout)
-                self.second_row_layout.setParent(None)
+                except Exception:
+                    pass
+                lbl.setVisible(False)
+            # 不要移除 second_row_layout 的父关系，保留布局对象以便再次添加时能稳定工作
 
         # 强制窗口调整大小
         self.adjustSize()
@@ -634,10 +753,13 @@ class CardUI(QMainWindow):
         # 使用更强制的方法调整窗口大小
         size_hint = self.central_widget.sizeHint()
 
-        # 临时设置为固定大小，强制调整
-        self.setFixedSize(size_hint.width(), size_hint.height())
-
-        # 恢复为可调整大小
+        # 调整为合适大小（不要使用 setFixedSize，会导致后续更改窗口标志或重绘时出现空白）
+        # 使用 resize 让窗口适应内容同时保持可调整
+        # 保证不会变得比最小尺寸还小，避免窗口内容被压扁成空白
+        new_w = max(size_hint.width(), 550)
+        new_h = max(size_hint.height(), 100)
+        self.resize(new_w, new_h)
+        # 保持合适的最小尺寸限制
         self.setMinimumSize(550, 100)
         self.setMaximumSize(16777215, 16777215)
 

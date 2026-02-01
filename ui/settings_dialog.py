@@ -98,14 +98,19 @@ class SettingsDialog(QDialog):
         layout_label.setMinimumWidth(80)
         self.combo_layout = QComboBox()
         self.combo_layout.setObjectName("LayoutCombo")
-        self.combo_layout.currentIndexChanged.connect(self._on_layout_changed)
-
+        # 注意：在添加选项和设置初始索引前不要连接信号，
+        # 否则构造对话框时会触发回调，导致主窗口的布局被重置
         # 加载布局配置选项
         from config.settings import WINDOW_LAYOUTS
         layout_names = list(WINDOW_LAYOUTS.keys())
+        # 在填充和初始化索引时屏蔽信号，避免在构造时触发 on_layout_change 回调
+        self.combo_layout.blockSignals(True)
         self.combo_layout.addItems(layout_names)
         if layout_names:
             self.combo_layout.setCurrentIndex(0)
+        self.combo_layout.blockSignals(False)
+        # 现在再连接信号，用户交互时才会触发回调
+        self.combo_layout.currentIndexChanged.connect(self._on_layout_changed)
 
         layout_config_layout.addWidget(layout_label)
         layout_config_layout.addWidget(self.combo_layout)
