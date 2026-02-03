@@ -31,7 +31,6 @@
 
 ## 系统要求
 
-- Windows 10/11
 - Python 3.8+
 - NVIDIA GPU（可选，用于加速）
 
