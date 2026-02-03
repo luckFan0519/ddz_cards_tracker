@@ -46,10 +46,6 @@ cd ddz_cards_tracker
 
 ### 2. 创建虚拟环境（推荐）
 
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
 
 ### 3. 安装依赖
 
